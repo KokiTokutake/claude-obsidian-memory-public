@@ -15,7 +15,9 @@ Claude Code のセッションが終了するたびに、AI が会話内容を�
 ObsidianVault/ClaudeCode/
 ├── Index.md                   ← マスター（プロジェクト一覧）
 ├── _Global/
-│   ├── Index.md               ← 全プロジェクト共通の知見
+│   ├── Index.md               ← 全プロジェクト共通の知見（厳選版・約200行。毎セッション全文を読む）
+│   ├── Inbox.md               ← Stop Hook が追記する未整理の新しい知見
+│   ├── archive/               ← 過去の全記録・統合済みInbox・厳選版のバックアップ・統合ログ
 │   └── Sessions/
 └── Projects/
     └── <リポジトリ名>/
@@ -28,6 +30,7 @@ ObsidianVault/ClaudeCode/
 ~/.claude/
 ├── settings.json              ← Stop Hook 登録
 ├── save-session-notes.ps1     ← メイン処理スクリプト
+├── consolidate-global-index.ps1 ← 週1回 Inbox を厳選版 Index に統合（タスクスケジューラ ClaudeObsidianConsolidate）
 └── rules/
     └── obsidian_memory.md     ← セッション開始時の読み込み指示
 ```
@@ -97,10 +100,14 @@ ObsidianVault/ClaudeCode/Projects/<repo>/Sessions/ ← セッションノート�
   → JSONL トランスクリプト抽出
   → git rev-parse でリポジトリ名検出
   → claude.exe --print で AI 要約（global / project に自動分類）
-  → _Global/Index.md 更新（グローバル知見）
+  → _Global/Inbox.md に追記（グローバル知見。具体的なものだけ・通常は0件）
   → Projects/<repo>/Index.md 更新（プロジェクト固有知見）
   → Projects/<repo>/Sessions/ にセッションノート保存
   → マスター Index.md にプロジェクト登録
+
+毎週日曜 12:00（タスクスケジューラ。PCが起動していなければ次回起動時）
+  → consolidate-global-index.ps1 が Inbox を Index.md に統合（重複は支持件数に加算、一般論は捨てる、各60件・全体260行以内）
+  → 出力を検証してから書き込み（マーカー・行数・項目の激減をチェック）、旧版は archive/ にバックアップ
 
 次のセッション開始
   → obsidian_memory.md により _Global/Index.md を読み込み

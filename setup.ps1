@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 # setup.ps1 - Claude Code x Obsidian Memory System Installer
 # Run: powershell -ExecutionPolicy Bypass -File setup.ps1
 
@@ -88,6 +88,22 @@ $ps1Content = $ps1Content -replace [regex]::Escape("C:\Users\USERNAME\OneDrive\O
 # Write with BOM (required for PS5.1 to read UTF-8 correctly)
 [System.IO.File]::WriteAllText($destPs1, $ps1Content, $utf8bom)
 Write-Host "  Installed (UTF-8 BOM): $destPs1"
+
+# Weekly consolidation: _Global/Inbox.md -> curated _Global/Index.md
+$destCons = "$ClaudeDir\consolidate-global-index.ps1"
+$consContent = [System.IO.File]::ReadAllText("$scriptDir\scripts\consolidate-global-index.ps1", $utf8)
+$consContent = $consContent -replace [regex]::Escape("C:\Users\USERNAME\OneDrive\ObsidianVault\ClaudeCode"), $VaultPath
+[System.IO.File]::WriteAllText($destCons, $consContent, $utf8bom)
+Write-Host "  Installed (UTF-8 BOM): $destCons"
+try {
+    $action   = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-ExecutionPolicy Bypass -NonInteractive -NoProfile -WindowStyle Hidden -File `"$destCons`""
+    $trigger  = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 12:00
+    $tsettings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 15) -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries
+    Register-ScheduledTask -TaskName 'ClaudeObsidianConsolidate' -Description 'Merge Obsidian _Global/Inbox.md into curated Index.md (weekly)' -Action $action -Trigger $trigger -Settings $tsettings -Force | Out-Null
+    Write-Host "  Registered scheduled task: ClaudeObsidianConsolidate (Sun 12:00)"
+} catch {
+    Write-Host "  WARN: could not register scheduled task: $($_.Exception.Message)" -ForegroundColor Yellow
+}
 Write-Host "  Done." -ForegroundColor Green
 
 # ---- Step 3: Install rules file ------------------------------------------
