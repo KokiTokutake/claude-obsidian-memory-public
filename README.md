@@ -117,4 +117,4 @@ ObsidianVault/ClaudeCode/Projects/<repo>/Sessions/ ← セッションノート�
 
 ## ライセンス
 
-MIT
+[MIT License](LICENSE) です。
